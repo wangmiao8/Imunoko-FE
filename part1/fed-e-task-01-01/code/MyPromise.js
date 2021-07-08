@@ -2,8 +2,6 @@
 尽可能还原 Promise 中的每一个 API, 并通过注释的方式描述思路和原理.
 */
 
-const { reject } = require("lodash");
-
 // Promise 的三个状态
 const PENDING = "pending";
 const FULFILLED = "fulfilled";
@@ -164,7 +162,7 @@ class MyPromise {
       const addData = (key, val) => {
         result[key] = val;
         count++;
-        count === result.length && resolve(result);
+        count === arr.length && resolve(result);
       };
 
       for (let i = 0; i < arr.length; i++) {
