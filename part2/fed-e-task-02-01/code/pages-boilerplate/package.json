@@ -43,6 +43,14 @@
     "popper.js": "1.16.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.15.0",
+    "@babel/preset-env": "^7.15.0",
+    "browser-sync": "^2.27.5",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-sass": "^5.0.0",
+    "gulp-swig": "^0.9.1",
+    "sass": "^1.38.1"
   },
   "engines": {
     "node": ">=6"
