@@ -1,6 +1,6 @@
 // 实现这个项目的构建任务
 
-const { src, dest } = require("gulp");
+const { src, dest, parallel } = require("gulp");
 const swig = require("gulp-swig");
 const sass = require("gulp-sass")(require("sass"));
 const babel = require("gulp-babel");
@@ -23,8 +23,8 @@ const script = () => {
     .pipe(dest("dist"));
 };
 
+const complie = parallel(page, style, script)
+
 module.exports = {
-  style,
-  script,
-  page
+  complie
 };
