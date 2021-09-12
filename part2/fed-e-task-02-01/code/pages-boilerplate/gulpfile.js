@@ -62,7 +62,7 @@ const page = () => {
         defaults: { cache: false },
       })
     )
-    .pipe(dest("dist"))
+    .pipe(dest("temp"))
     .pipe(bs.reload({ stream: true }));
 };
 
@@ -72,7 +72,7 @@ const page = () => {
 const style = () => {
   return src("src/assets/styles/*.scss", { base: "src" }) // base 保留文件路径
     .pipe(sass({ outputStyle: "expanded" }))
-    .pipe(dest("dist"))
+    .pipe(dest("temp"))
     .pipe(bs.reload({ stream: true }));
 };
 
@@ -82,7 +82,7 @@ const style = () => {
 const script = () => {
   return src("src/assets/scripts/*.js", { base: "src" }) // base 保留文件路径
     .pipe(plugins.babel({ presets: ["@babel/preset-env"] }))
-    .pipe(dest("dist"))
+    .pipe(dest("temp"))
     .pipe(bs.reload({ stream: true }));
 };
 
@@ -114,7 +114,7 @@ const extra = () => {
 /**
  * @desc: 清理 dist 文件
  */
-const clean = () => del(["dist"]);
+const clean = () => del(["dist", "temp"]);
 
 /**
  * @desc: 启动服务，HRM
@@ -136,7 +136,7 @@ const serve = () => {
     open: false, // 是否自动打开
     notify: false, // 服务器连接状态提示
     server: {
-      baseDir: ["dist", "src", "public"],
+      baseDir: ["temp", "src", "public"],
       routes: {
         "/node_modules": "node_modules",
       },
@@ -144,13 +144,54 @@ const serve = () => {
   });
 };
 
-// 需要对外提供的任务
-const complie = parallel(page, style, script, image, font);
-const build = series(clean, parallel(complie, extra));
+/**
+ * @desc: 合并 html 文件的外部引用，并且针对相应的文件进行压缩处理
+ */
+const useref = () => {
+  return src("temp/*.html", { base: "temp" })
+    .pipe(plugins.useref({ searchPath: ["temp", "."] }))
+    .pipe(plugins.if(/\.js$/, plugins.uglify()))
+    .pipe(plugins.if(/\.css$/, plugins.cleanCss()))
+    .pipe(
+      plugins.if(
+        /\.html$/,
+        plugins.htmlmin({
+          // 压缩 html 文件内容
+          collapseWhitespace: true,
+          minifyCSS: true,
+          minifyJS: true,
+        })
+      )
+    )
+    .pipe(dest("dist"));
+};
 
+/**
+ * @desc: 用于 dist 启动服务（生产环境）
+ */
+const start = () => {
+  return bs.init({
+    port: 2080, // 默认端口
+    open: false, // 是否自动打开
+    notify: false, // 服务器连接状态提示
+    server: {
+      baseDir: ["dist"],
+    },
+  });
+};
+
+const compile = parallel(page, style, script);
+const build = series(
+  clean,
+  parallel(series(compile, useref), image, font, extra)
+);
+
+// 需要对外提供的任务
 module.exports = {
   clean,
-  complie,
-  build,
+  // lint,
   serve,
+  build,
+  start,
+  // deploy
 };
